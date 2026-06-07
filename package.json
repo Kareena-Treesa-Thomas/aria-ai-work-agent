@@ -1,0 +1,14 @@
+{
+  "name": "aria-fullstack-project",
+  "version": "1.0.0",
+  "description": "ARIA - Automated Response Intelligence Agent full-stack app",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

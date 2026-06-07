@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>ARIA - AI Work Agent</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%96%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card: #111111;
+      --border: #222222;
+      --text: #ffffff;
+      --muted: #b8b8b8;
+      --subtle: #777777;
+      --primary: #7c3aed;
+      --secondary: #a855f7;
+      --email: #3b82f6;
+      --meeting: #7c3aed;
+      --voice: #10b981;
+      --cyan: #38bdf8;
+      --success: #22c55e;
+      --error: #fb7185;
+      --warning: #f59e0b;
+      --whatsapp: #25d366;
+      --active: var(--email);
+      --active-rgb: 59, 130, 246;
+      --radius: 8px;
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(59, 130, 246, 0.18), transparent 28rem),
+        radial-gradient(circle at 86% 18%, rgba(124, 58, 237, 0.2), transparent 30rem),
+        linear-gradient(120deg, rgba(16, 185, 129, 0.08), transparent 35%, rgba(168, 85, 247, 0.08) 68%, transparent),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        var(--bg);
+      background-size: 120% 120%, 120% 120%, 180% 180%, 44px 44px, 44px 44px, auto;
+      animation: gradientShift 18s ease-in-out infinite alternate;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      content: "";
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 78px, rgba(124, 58, 237, 0.08) 79px, transparent 80px),
+        repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 7px);
+      opacity: 0.45;
+      animation: gridDrift 18s linear infinite;
+    }
+
+    .particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--p, var(--secondary));
+      box-shadow: 0 0 18px var(--p, var(--secondary));
+      opacity: 0.6;
+      animation: particleFloat var(--speed, 13s) ease-in-out infinite alternate;
+    }
+
+    .particle:nth-child(1) { left: 9%; top: 18%; --p: #3b82f6; --speed: 12s; }
+    .particle:nth-child(2) { left: 25%; top: 73%; --p: #10b981; --speed: 16s; }
+    .particle:nth-child(3) { left: 52%; top: 16%; --p: #a855f7; --speed: 14s; }
+    .particle:nth-child(4) { left: 72%; top: 62%; --p: #38bdf8; --speed: 15s; }
+    .particle:nth-child(5) { left: 88%; top: 28%; --p: #7c3aed; --speed: 11s; }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 1060px);
+      margin: 0 auto;
+      padding: 36px 18px 26px;
+      animation: pageIn 620ms ease both;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.75fr);
+      align-items: center;
+      gap: clamp(20px, 6vw, 48px);
+      padding: 18px 0 30px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid rgba(168, 85, 247, 0.36);
+      border-radius: 999px;
+      background: rgba(124, 58, 237, 0.11);
+      color: #efe3ff;
+      font-size: 0.82rem;
+      font-weight: 800;
+      box-shadow: 0 0 24px rgba(124, 58, 237, 0.14);
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--secondary);
+      box-shadow: 0 0 14px var(--secondary);
+    }
+
+    .logo-wrap {
+      position: relative;
+      display: inline-flex;
+      margin: 18px 0 8px;
+      isolation: isolate;
+    }
+
+    .logo-wrap::before,
+    .logo-wrap::after {
+      position: absolute;
+      inset: -14px -18px;
+      z-index: -1;
+      content: "";
+      border: 1px solid rgba(168, 85, 247, 0.38);
+      border-radius: 999px;
+      box-shadow: 0 0 34px rgba(124, 58, 237, 0.2), inset 0 0 18px rgba(59, 130, 246, 0.12);
+      animation: logoPulse 2.7s ease-out infinite;
+    }
+
+    .logo-wrap::after {
+      inset: -24px -32px;
+      border-color: rgba(56, 189, 248, 0.18);
+      animation-delay: 900ms;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(4.3rem, 13vw, 9rem);
+      line-height: 0.9;
+      font-weight: 900;
+      letter-spacing: 0;
+      background: linear-gradient(135deg, var(--secondary), var(--primary) 42%, #d8b4fe 82%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #f4f0ff;
+      font-size: clamp(1.15rem, 3vw, 1.6rem);
+      font-weight: 850;
+    }
+
+    .tagline {
+      width: 49ch;
+      max-width: min(100%, 38rem);
+      margin: 14px 0 0;
+      overflow: hidden;
+      white-space: nowrap;
+      border-right: 2px solid var(--secondary);
+      color: var(--muted);
+      font-size: clamp(0.98rem, 2.4vw, 1.12rem);
+      animation: typeText 2.5s steps(49, end) 380ms both, caret 900ms step-end infinite;
+    }
+
+    .agent-visual {
+      position: relative;
+      min-height: 318px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(17, 17, 17, 0.92), rgba(21, 12, 40, 0.72)),
+        repeating-linear-gradient(90deg, transparent 0 23px, rgba(56, 189, 248, 0.08) 24px, transparent 25px),
+        repeating-linear-gradient(180deg, transparent 0 23px, rgba(124, 58, 237, 0.08) 24px, transparent 25px);
+      box-shadow: 0 0 42px rgba(59, 130, 246, 0.08), inset 0 0 70px rgba(124, 58, 237, 0.11);
+      overflow: hidden;
+    }
+
+    .agent-visual::before {
+      position: absolute;
+      inset: -30%;
+      content: "";
+      background: conic-gradient(from 90deg, transparent, rgba(59, 130, 246, 0.12), transparent, rgba(168, 85, 247, 0.16), transparent);
+      animation: sweep 12s linear infinite;
+    }
+
+    .agent-svg {
+      position: absolute;
+      inset: 8%;
+      width: 84%;
+      height: 84%;
+      filter: drop-shadow(0 0 18px rgba(124, 58, 237, 0.35));
+    }
+
+    .circuit-line {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 12 10;
+      animation: dash 4s linear infinite;
+    }
+
+    .node {
+      animation: nodePulse 2.6s ease-in-out infinite;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .workspace {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--card) 92%, #1c1032);
+      box-shadow: 0 22px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.025);
+    }
+
+    .input-panel {
+      padding: clamp(16px, 3.5vw, 24px);
+    }
+
+    .type-switcher {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #0d0d0d;
+    }
+
+    .type-button {
+      --button-rgb: 124, 58, 237;
+      min-height: 44px;
+      border: 1px solid rgba(var(--button-rgb), 0.22);
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(var(--button-rgb), 0.12), transparent);
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.93rem;
+      font-weight: 850;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .type-button[data-type="email"] { --button-rgb: 59, 130, 246; }
+    .type-button[data-type="meeting"] { --button-rgb: 124, 58, 237; }
+    .type-button[data-type="voice"] { --button-rgb: 16, 185, 129; }
+
+    .type-button:hover,
+    .type-button.active {
+      border-color: rgba(var(--button-rgb), 0.68);
+      box-shadow: 0 0 28px rgba(var(--button-rgb), 0.38), inset 0 0 18px rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .type-button.active {
+      background: linear-gradient(135deg, rgba(var(--button-rgb), 0.96), rgba(var(--button-rgb), 0.58));
+    }
+
+    .input-wrap {
+      position: relative;
+      margin-top: 16px;
+    }
+
+    .mode-hint {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(var(--active-rgb), 0.34);
+      border-radius: var(--radius);
+      background: linear-gradient(90deg, rgba(var(--active-rgb), 0.12), rgba(255, 255, 255, 0.025));
+      color: #eef7ff;
+      font-size: 0.9rem;
+      font-weight: 750;
+      line-height: 1.5;
+    }
+
+    .mode-hint.show {
+      display: block;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 220px;
+      resize: vertical;
+      padding: 18px 18px 38px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #0d0d0d;
+      color: var(--text);
+      caret-color: var(--secondary);
+      font: inherit;
+      font-size: 1rem;
+      line-height: 1.65;
+      transition: border-color 180ms ease, box-shadow 180ms ease, opacity 160ms ease;
+    }
+
+    textarea::placeholder {
+      color: #707070;
+    }
+
+    textarea:focus {
+      border-color: rgba(var(--active-rgb), 0.74);
+      box-shadow: 0 0 0 4px rgba(var(--active-rgb), 0.15);
+      outline: 0;
+    }
+
+    .counter {
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      color: var(--subtle);
+      font-size: 0.78rem;
+      font-weight: 750;
+      pointer-events: none;
+    }
+
+    .submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 54px;
+      margin-top: 16px;
+      border: 0;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+      box-shadow: 0 14px 38px rgba(124, 58, 237, 0.3);
+      transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+    }
+
+    .submit:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+      box-shadow: 0 0 32px rgba(168, 85, 247, 0.42), 0 18px 46px rgba(124, 58, 237, 0.25);
+    }
+
+    .submit:disabled {
+      cursor: not-allowed;
+      opacity: 0.74;
+    }
+
+    .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      border-top-color: var(--text);
+      border-radius: 50%;
+      animation: spin 760ms linear infinite;
+    }
+
+    .submit.loading .spinner {
+      display: inline-block;
+    }
+
+    .processing {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 13px;
+      min-height: 54px;
+      margin-top: 14px;
+      border: 1px solid rgba(var(--active-rgb), 0.42);
+      border-radius: var(--radius);
+      background: linear-gradient(90deg, rgba(var(--active-rgb), 0.1), rgba(168, 85, 247, 0.1)), #0d0d0d;
+      font-weight: 850;
+    }
+
+    .processing.active {
+      display: flex;
+    }
+
+    .wave {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 24px;
+    }
+
+    .wave span {
+      width: 4px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--active);
+      box-shadow: 0 0 12px rgba(var(--active-rgb), 0.74);
+      animation: wave 820ms ease-in-out infinite;
+    }
+
+    .wave span:nth-child(2) { animation-delay: 110ms; }
+    .wave span:nth-child(3) { animation-delay: 220ms; }
+    .wave span:nth-child(4) { animation-delay: 330ms; }
+
+    .error {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(251, 113, 133, 0.32);
+      border-radius: var(--radius);
+      background: rgba(251, 113, 133, 0.08);
+      color: #ffdce3;
+      line-height: 1.5;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .output {
+      display: none;
+      overflow: hidden;
+      border-color: rgba(var(--active-rgb), 0.55);
+      animation: outputIn 300ms ease both;
+    }
+
+    .output.visible {
+      display: block;
+    }
+
+    .output-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px clamp(16px, 3.5vw, 22px);
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(90deg, rgba(var(--active-rgb), 0.12), transparent 72%), #151515;
+    }
+
+    .output-title {
+      margin: 0;
+      padding-left: 13px;
+      border-left: 4px solid var(--active);
+      font-size: 1.04rem;
+      font-weight: 900;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      margin-top: 7px;
+      color: var(--subtle);
+      font-size: 0.78rem;
+      font-weight: 750;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 12px var(--success);
+    }
+
+    .copy {
+      min-height: 40px;
+      padding: 0 13px;
+      border: 1px solid rgba(var(--active-rgb), 0.42);
+      border-radius: 6px;
+      background: rgba(var(--active-rgb), 0.13);
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 850;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .copy:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 22px rgba(var(--active-rgb), 0.24);
+    }
+
+    .output-body {
+      padding: clamp(16px, 3.5vw, 22px);
+    }
+
+    .response {
+      min-height: 80px;
+      color: #eeeeee;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .response-line {
+      margin: 0 0 8px;
+      white-space: pre-wrap;
+    }
+
+    .response-section {
+      margin-top: 13px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-left-color: currentColor;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .label {
+      margin-right: 6px;
+      font-weight: 900;
+    }
+
+    .label.reply,
+    .label.tone { color: var(--email); }
+    .label.tasks,
+    .label.decisions,
+    .label.followup { color: var(--meeting); }
+    .label.summary,
+    .label.actionitems,
+    .label.sendto { color: var(--voice); }
+    .label.urgency,
+    .label.deadlines { color: var(--warning); }
+
+    .integrations {
+      display: none;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .integrations.show {
+      display: block;
+    }
+
+    .whatsapp-card {
+      display: none;
+      margin-top: 16px;
+      padding: 14px;
+      border: 1px solid rgba(37, 211, 102, 0.48);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(37, 211, 102, 0.14), rgba(16, 185, 129, 0.06));
+      color: #eafff1;
+    }
+
+    .whatsapp-card.show {
+      display: block;
+    }
+
+    .whatsapp-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #ffffff;
+      font-size: 0.96rem;
+    }
+
+    .whatsapp-button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      margin-top: 10px;
+      padding: 0 13px;
+      border: 1px solid rgba(37, 211, 102, 0.7);
+      border-radius: 6px;
+      background: rgba(37, 211, 102, 0.18);
+      color: #ffffff;
+      font-weight: 900;
+      text-decoration: none;
+      box-shadow: 0 0 18px rgba(37, 211, 102, 0.16);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .whatsapp-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 24px rgba(37, 211, 102, 0.26);
+    }
+
+    .integration-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      margin-top: 6px;
+      padding: 0 10px;
+      border: 1px solid rgba(16, 185, 129, 0.44);
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.12);
+      color: #d9ffe6;
+      font-weight: 850;
+      text-decoration: none;
+      transition: box-shadow 180ms ease, transform 180ms ease;
+    }
+
+    .integration-link:hover {
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.24);
+      transform: translateY(-1px);
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 0 2px;
+      color: var(--subtle);
+      font-size: 0.86rem;
+      font-weight: 650;
+    }
+
+    .online {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      color: #d9ffe6;
+    }
+
+    .online-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: statusPulse 1.8s ease-out infinite;
+    }
+
+    @keyframes pageIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes gradientShift { to { background-position: 14% 8%, 82% 18%, 100% 50%, 18px 0, 0 18px, 0 0; } }
+    @keyframes gridDrift { to { transform: translate3d(2%, -3%, 0); } }
+    @keyframes particleFloat { to { transform: translate3d(18px, -32px, 0) scale(1.12); } }
+    @keyframes logoPulse { 0% { opacity: 0; transform: scale(0.86); } 42% { opacity: 0.9; } 100% { opacity: 0; transform: scale(1.15); } }
+    @keyframes typeText { from { width: 0; } to { width: 49ch; } }
+    @keyframes caret { 50% { border-color: transparent; } }
+    @keyframes sweep { to { transform: rotate(360deg); } }
+    @keyframes dash { to { stroke-dashoffset: -44; } }
+    @keyframes nodePulse { 0%, 100% { opacity: 0.68; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.12); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes wave { 0%, 100% { height: 8px; opacity: 0.58; } 50% { height: 24px; opacity: 1; } }
+    @keyframes outputIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes statusPulse { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.52); } 70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+
+    @media (max-width: 760px) {
+      .shell { padding: 28px 12px 22px; }
+      .hero { grid-template-columns: 1fr; text-align: center; }
+      .agent-visual { min-height: 240px; order: -1; }
+      .tagline { width: auto; white-space: normal; border-right: 0; animation: pageIn 520ms ease 380ms both; }
+      .type-switcher { grid-template-columns: 1fr; }
+      .output-head,
+      .footer { align-items: stretch; flex-direction: column; }
+      .copy { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="particles" aria-hidden="true">
+    <span class="particle"></span>
+    <span class="particle"></span>
+    <span class="particle"></span>
+    <span class="particle"></span>
+    <span class="particle"></span>
+  </div>
+
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <div class="badge"><span class="badge-dot"></span> Powered by OpenAI</div>
+        <div class="logo-wrap"><h1>ARIA</h1></div>
+        <p class="subtitle">Automated Response Intelligence Agent</p>
+        <p class="tagline">You dump the input. ARIA handles what comes next.</p>
+      </div>
+
+      <div class="agent-visual" aria-hidden="true">
+        <svg class="agent-svg" viewBox="0 0 420 360">
+          <defs>
+            <linearGradient id="agentGradient" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#38bdf8" />
+              <stop offset="48%" stop-color="#7c3aed" />
+              <stop offset="100%" stop-color="#10b981" />
+            </linearGradient>
+            <filter id="agentGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
+          <path class="circuit-line" d="M48 86H116L151 122H221L262 84H371" stroke="#38bdf8" stroke-width="3" opacity="0.7" filter="url(#agentGlow)" />
+          <path class="circuit-line" d="M54 260H116L164 214H249L303 260H370" stroke="#10b981" stroke-width="3" opacity="0.65" filter="url(#agentGlow)" />
+          <path class="circuit-line" d="M82 176H138L176 139H244L284 176H341" stroke="#a855f7" stroke-width="4" opacity="0.8" filter="url(#agentGlow)" />
+          <path class="circuit-line" d="M210 42V96M210 264V318M106 178H54M366 178H314" stroke="url(#agentGradient)" stroke-width="3" opacity="0.72" filter="url(#agentGlow)" />
+          <rect x="142" y="98" width="136" height="164" rx="26" fill="rgba(10,10,10,0.68)" stroke="url(#agentGradient)" stroke-width="3" filter="url(#agentGlow)" />
+          <rect x="164" y="124" width="92" height="66" rx="16" fill="rgba(59,130,246,0.08)" stroke="#38bdf8" stroke-width="2" />
+          <circle class="node" cx="190" cy="157" r="8" fill="#38bdf8" filter="url(#agentGlow)" />
+          <circle class="node" cx="231" cy="157" r="8" fill="#a855f7" filter="url(#agentGlow)" />
+          <path d="M177 216C194 232 228 232 244 216" fill="none" stroke="#10b981" stroke-width="5" stroke-linecap="round" filter="url(#agentGlow)" />
+          <circle class="node" cx="48" cy="86" r="7" fill="#38bdf8" />
+          <circle class="node" cx="371" cy="86" r="7" fill="#7c3aed" />
+          <circle class="node" cx="54" cy="260" r="7" fill="#10b981" />
+          <circle class="node" cx="370" cy="260" r="7" fill="#38bdf8" />
+          <circle class="node" cx="210" cy="42" r="7" fill="#38bdf8" />
+          <circle class="node" cx="210" cy="318" r="7" fill="#7c3aed" />
+        </svg>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <form class="panel input-panel" id="aria-form">
+        <div class="type-switcher" role="tablist" aria-label="Input type">
+          <button class="type-button active" type="button" data-type="email">Email</button>
+          <button class="type-button" type="button" data-type="meeting">Meeting Notes</button>
+          <button class="type-button" type="button" data-type="voice">Voice Memo</button>
+        </div>
+
+        <div class="mode-hint" id="mode-hint"></div>
+
+        <div class="input-wrap">
+          <textarea id="input-text" placeholder="Paste the email you received here..." aria-label="ARIA input"></textarea>
+          <span class="counter" id="counter">0 characters</span>
+        </div>
+
+        <button class="submit" id="submit" type="submit">
+          <span class="spinner"></span>
+          <span id="submit-label">Process with ARIA</span>
+        </button>
+
+        <div class="processing" id="processing">
+          <span>AI Processing</span>
+          <span class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        </div>
+
+        <div class="error" id="error" role="alert"></div>
+      </form>
+
+      <section class="panel output" id="output" aria-live="polite">
+        <div class="output-head">
+          <div>
+            <h2 class="output-title">ARIA Response</h2>
+            <div class="meta">
+              <span><span class="status-dot"></span><span id="status">Success</span></span>
+              <span id="source">Source pending</span>
+              <span id="time">Not generated yet</span>
+            </div>
+          </div>
+          <button class="copy" id="copy" type="button">Copy</button>
+        </div>
+        <div class="output-body">
+          <div class="response" id="response"></div>
+          <div class="whatsapp-card" id="whatsapp-card"></div>
+          <div class="integrations" id="integrations"></div>
+        </div>
+      </section>
+    </section>
+
+    <footer class="footer">
+      <span>Built with OpenAI Codex at Codex Community Hackathon Kochi 2026</span>
+      <span class="online"><span class="online-dot"></span>ARIA backend online</span>
+    </footer>
+  </main>
+
+  <script>
+    const types = {
+      email: {
+        placeholder: "Paste the email you received here...",
+        hint: "Email mode drafts a professional reply with tone and urgency.",
+        accent: "#3b82f6",
+        rgb: "59, 130, 246"
+      },
+      meeting: {
+        placeholder: "Paste your meeting notes here...",
+        hint: "Meeting mode extracts decisions, tasks, deadlines, and follow-ups.",
+        accent: "#7c3aed",
+        rgb: "124, 58, 237"
+      },
+      voice: {
+        placeholder: "Paste your voice transcript here...",
+        hint: "Voice Memo mode creates a summary and shows a WhatsApp handoff link after processing.",
+        accent: "#10b981",
+        rgb: "16, 185, 129"
+      }
+    };
+
+    const form = document.getElementById("aria-form");
+    const buttons = Array.from(document.querySelectorAll(".type-button"));
+    const textarea = document.getElementById("input-text");
+    const modeHint = document.getElementById("mode-hint");
+    const counter = document.getElementById("counter");
+    const submit = document.getElementById("submit");
+    const submitLabel = document.getElementById("submit-label");
+    const processing = document.getElementById("processing");
+    const errorBox = document.getElementById("error");
+    const output = document.getElementById("output");
+    const responseBox = document.getElementById("response");
+    const whatsappCard = document.getElementById("whatsapp-card");
+    const integrationsBox = document.getElementById("integrations");
+    const statusText = document.getElementById("status");
+    const sourceText = document.getElementById("source");
+    const timeText = document.getElementById("time");
+    const copyButton = document.getElementById("copy");
+
+    let selectedType = "email";
+    let latestResponse = "";
+
+    const labels = [
+      "REPLY", "TONE", "URGENCY", "DECISIONS", "TASKS", "DEADLINES",
+      "FOLLOW-UP", "SUMMARY", "ACTION ITEMS", "SEND TO"
+    ];
+
+    const labelClasses = {
+      REPLY: "reply",
+      TONE: "tone",
+      URGENCY: "urgency",
+      DECISIONS: "decisions",
+      TASKS: "tasks",
+      DEADLINES: "deadlines",
+      "FOLLOW-UP": "followup",
+      SUMMARY: "summary",
+      "ACTION ITEMS": "actionitems",
+      "SEND TO": "sendto"
+    };
+
+    const escapeHtml = (value) => String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+    const updateCounter = () => {
+      const count = textarea.value.length;
+      counter.textContent = `${count.toLocaleString()} ${count === 1 ? "character" : "characters"}`;
+    };
+
+    const setType = (type) => {
+      selectedType = type;
+      const config = types[type];
+      document.documentElement.style.setProperty("--active", config.accent);
+      document.documentElement.style.setProperty("--active-rgb", config.rgb);
+      textarea.placeholder = config.placeholder;
+      modeHint.textContent = config.hint;
+      modeHint.classList.add("show");
+      buttons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.type === type);
+      });
+    };
+
+    const setLoading = (isLoading) => {
+      submit.disabled = isLoading;
+      submit.classList.toggle("loading", isLoading);
+      processing.classList.toggle("active", isLoading);
+      submitLabel.textContent = isLoading ? "ARIA is processing..." : "Process with ARIA";
+    };
+
+    const showError = (message) => {
+      errorBox.textContent = message;
+      errorBox.classList.add("show");
+    };
+
+    const clearError = () => {
+      errorBox.textContent = "";
+      errorBox.classList.remove("show");
+    };
+
+    const formatResponse = (text) => {
+      const pattern = labels
+        .map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+"))
+        .join("|");
+
+      const normalized = String(text || "")
+        .replace(new RegExp(`\\s+(${pattern})\\s*:`, "gi"), (match, label, offset) => {
+          return `${offset === 0 ? "" : "\n"}${label.toUpperCase().replace(/\s+/g, " ")}:`;
+        });
+
+      return normalized.split(/\r?\n/).map((line) => {
+        if (!line.trim()) return '<div style="height:8px"></div>';
+        const match = line.match(new RegExp(`^\\s*(${pattern})\\s*:\\s*(.*)$`, "i"));
+        if (match) {
+          const label = match[1].toUpperCase().replace(/\s+/g, " ");
+          const content = match[2] ? ` <span>${escapeHtml(match[2])}</span>` : "";
+          return `<div class="response-line response-section"><span class="label ${labelClasses[label] || ""}">${label}:</span>${content}</div>`;
+        }
+        return `<div class="response-line">${escapeHtml(line)}</div>`;
+      }).join("");
+    };
+
+    const renderIntegrations = (integrations, warnings = []) => {
+      const integrationItems = Array.isArray(integrations) ? integrations : [];
+      const warningItems = Array.isArray(warnings) ? warnings : [];
+      const whatsappAction = integrationItems.find((item) => item.action_url);
+
+      if (whatsappAction) {
+        whatsappCard.innerHTML = `
+          <strong>WhatsApp handoff ready</strong>
+          <div>The voice summary is ready to send. Open WhatsApp to review and send it.</div>
+          <a class="whatsapp-button" href="${escapeHtml(whatsappAction.action_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(whatsappAction.action_label || "Open WhatsApp")}</a>
+        `;
+        whatsappCard.classList.add("show");
+      } else {
+        whatsappCard.classList.remove("show");
+        whatsappCard.innerHTML = "";
+      }
+
+      if (integrationItems.length === 0 && warningItems.length === 0) {
+        integrationsBox.classList.remove("show");
+        integrationsBox.innerHTML = "";
+        return;
+      }
+
+      const integrationHtml = integrationItems.map((item) => {
+        const status = item.status || "unknown";
+        const detail = item.message || item.reason || "";
+        const action = item.action_url
+          ? `<div><a class="integration-link" href="${escapeHtml(item.action_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.action_label || "Open link")}</a></div>`
+          : "";
+        return `<div><strong>${escapeHtml(item.service || "integration")}:</strong> ${escapeHtml(status)}${detail ? ` - ${escapeHtml(detail)}` : ""}${action}</div>`;
+      }).join("");
+
+      const warningHtml = warningItems.map((item) => {
+        return `<div><strong>${escapeHtml(item.source || "provider")}:</strong> ${escapeHtml(item.error || "unavailable")}</div>`;
+      }).join("");
+
+      integrationsBox.innerHTML = `${integrationHtml}${warningHtml ? `<div style="margin-top:10px;color:#fbbf24"><strong>Diagnostics</strong>${warningHtml}</div>` : ""}`;
+      integrationsBox.classList.add("show");
+    };
+
+    const copyToClipboard = async () => {
+      if (!latestResponse) return;
+
+      try {
+        await navigator.clipboard.writeText(latestResponse);
+        copyButton.textContent = "Copied";
+      } catch {
+        const helper = document.createElement("textarea");
+        helper.value = latestResponse;
+        helper.style.position = "fixed";
+        helper.style.left = "-9999px";
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        document.body.removeChild(helper);
+        copyButton.textContent = "Copied";
+      }
+
+      setTimeout(() => {
+        copyButton.textContent = "Copy";
+      }, 1500);
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setType(button.dataset.type));
+    });
+
+    textarea.addEventListener("input", updateCounter);
+    copyButton.addEventListener("click", copyToClipboard);
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = textarea.value.trim();
+      clearError();
+
+      if (!input) {
+        showError("Add some input for ARIA to process.");
+        textarea.focus();
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const response = await fetch("/api/process", {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            input_type: selectedType,
+            input
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || "ARIA backend failed.");
+        }
+
+        latestResponse = data.response || "";
+        responseBox.innerHTML = formatResponse(latestResponse);
+        statusText.textContent = "Success";
+        sourceText.textContent = `Source: ${data.source || "backend"}`;
+        timeText.textContent = new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short"
+        }).format(new Date(data.generated_at || Date.now()));
+        renderIntegrations(data.integrations, data.warnings);
+        output.classList.add("visible");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "ARIA could not process this request.";
+        showError(message);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    fetch("/api/health")
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data.ok) showError("ARIA backend health check failed.");
+      })
+      .catch(() => showError("ARIA backend is not reachable. Start the server with npm start."));
+
+    setType(selectedType);
+    updateCounter();
+  </script>
+</body>
+</html>
